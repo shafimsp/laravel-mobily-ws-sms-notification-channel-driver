@@ -4,7 +4,7 @@ namespace Shafimsp\SmsNotificationChannel\MobilyWs;
 
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\RequestException;
-use Shafimsp\SmsNotificationChannel\MobilyWs\Exceptions\CouldNotSendMobilyWsNotification;
+use Shafimsp\SmsNotificationChannel\MobilyWs\Exceptions\MobilyWsSmsNotificationException;
 use Shafimsp\SmsNotificationChannel\SmsMessage;
 
 class MobilyWsApi
@@ -49,18 +49,16 @@ class MobilyWsApi
      *
      * @param SmsMessage $message
      *
-     * @param                 $number
-     *
      * @return array
-     * @internal param $params
      */
-    public function sendMessage(SmsMessage $message, $number)
+    public function sendMessage(SmsMessage $message)
     {
         $params = [
             'msg' => $message->content,
-            'numbers' => $number,
-            'dateSend' => $message->dateSend(),
-            'timeSend' => $message->timeSend(),
+            'numbers' => implode(",", $message->to),
+            'dateSend' => $message->dateSend,
+            'timeSend' => $message->timeSend,
+            'deleteKey' => $message->deleteKey,
         ];
         
         $payload = $this->preparePayload($params);
@@ -73,7 +71,7 @@ class MobilyWsApi
      * @param array $payload
      *
      * @return array
-     * @throws \Shafimsp\SmsNotificationChannel\MobilyWs\Exceptions\CouldNotSendMobilyWsNotification
+     * @throws \Shafimsp\SmsNotificationChannel\MobilyWs\Exceptions\MobilyWsSmsNotificationException
      * @internal param array $params
      *
      */
@@ -82,15 +80,19 @@ class MobilyWsApi
         try {
             $response = $this->http->post($this->endpoint, $payload);
 
-            if ($response->getStatusCode() == 200) {
-                return [
-                    'code' => $code = (string) $response->getBody(),
-                    'message' => $this->msgSendResponse($code),
-                ];
+            if ($response->getStatusCode() != 200) {
+                throw MobilyWsSmsNotificationException::someErrorWhenSendingSms($response);
             }
-            throw CouldNotSendMobilyWsNotification::someErrorWhenSendingSms($response);
+
+            $code = (string) $response->getBody();
+
+            if ($code != 1) {
+                throw MobilyWsSmsNotificationException::mobilyWsRespondedWithAnError($code, $this->msgSendResponse($code));
+            }
+
+            return $code;
         } catch (RequestException $exception) {
-            throw CouldNotSendMobilyWsNotification::couldNotSendRequestToMobilyWs($exception);
+            throw MobilyWsSmsNotificationException::couldNotSendRequestToMobilyWs($exception);
         }
     }
 
@@ -125,32 +127,32 @@ class MobilyWsApi
     protected function msgSendResponse($code)
     {
         $arraySendMsg = [];
-        $arraySendMsg[0] = 'لم يتم الاتصال بالخادم';
-        $arraySendMsg[1] = 'تمت عملية الإرسال بنجاح';
-        $arraySendMsg[2] = 'رصيدك 0 , الرجاء إعادة التعبئة حتى تتمكن من إرسال الرسائل';
-        $arraySendMsg[3] = 'رصيدك غير كافي لإتمام عملية الإرسال';
-        $arraySendMsg[4] = 'رقم الجوال (إسم المستخدم) غير صحيح';
-        $arraySendMsg[5] = 'كلمة المرور الخاصة بالحساب غير صحيحة';
-        $arraySendMsg[6] = 'صفحة الانترنت غير فعالة , حاول الارسال من جديد';
-        $arraySendMsg[7] = 'نظام المدارس غير فعال';
-        $arraySendMsg[8] = 'تكرار رمز المدرسة لنفس المستخدم';
-        $arraySendMsg[9] = 'انتهاء الفترة التجريبية';
-        $arraySendMsg[10] = 'عدد الارقام لا يساوي عدد الرسائل';
-        $arraySendMsg[11] = 'اشتراكك لا يتيح لك ارسال رسائل لهذه المدرسة. يجب عليك تفعيل الاشتراك لهذه المدرسة';
-        $arraySendMsg[12] = 'إصدار البوابة غير صحيح';
-        $arraySendMsg[13] = 'الرقم المرسل به غير مفعل أو لا يوجد الرمز BS في نهاية الرسالة';
-        $arraySendMsg[14] = 'غير مصرح لك بالإرسال بإستخدام هذا المرسل';
-        $arraySendMsg[15] = 'الأرقام المرسل لها غير موجوده أو غير صحيحه';
-        $arraySendMsg[16] = 'إسم المرسل فارغ، أو غير صحيح';
-        $arraySendMsg[17] = 'نص الرسالة غير متوفر أو غير مشفر بشكل صحيح';
-        $arraySendMsg[18] = 'تم ايقاف الارسال من المزود';
-        $arraySendMsg[19] = 'لم يتم العثور على مفتاح نوع التطبيق';
+        $arraySendMsg[0] = 'Not connected to server';
+        $arraySendMsg[1] = 'Successfully submitted';
+        $arraySendMsg[2] = 'Your balance 0, please recharge so you can send messages';
+        $arraySendMsg[3] = 'Your balance is insufficient to complete the submission';
+        $arraySendMsg[4] = 'Mobile number (username) is invalid';
+        $arraySendMsg[5] = 'Invalid account password';
+        $arraySendMsg[6] = 'Web page ineffective, try sending again';
+        $arraySendMsg[7] = 'School system ineffective';
+        $arraySendMsg[8] = 'Duplicate school code for same user';
+        $arraySendMsg[9] = 'End of trial period';
+        $arraySendMsg[10] = 'Number of digits is not equal to number of messages';
+        $arraySendMsg[11] = 'Your subscription does not allow you to send messages to this school. You must activate the subscription for this school';
+        $arraySendMsg[12] = 'Portal version is incorrect';
+        $arraySendMsg[13] = 'The number sent is not enabled or there is no BS at the end of the message';
+        $arraySendMsg[14] = 'You are not authorized to post using this sender';
+        $arraySendMsg[15] = 'Sender numbers are missing or invalid';
+        $arraySendMsg[16] = 'Sender name is empty, or invalid';
+        $arraySendMsg[17] = 'Message body not available or not properly encrypted';
+        $arraySendMsg[18] = 'Transmission stopped from provider';
+        $arraySendMsg[19] = 'Application type key not found';
 
         if (array_key_exists($code, $arraySendMsg)) {
             return $arraySendMsg[$code];
         }
-        $message = "نتيجة العملية غير معرفه، الرجاء المحاول مجددا\n";
-        $message .= 'الكود المرسل من الموقع: ';
+        $message = "The result of the operation is unknown, please try again \n";
+        $message .= 'Code sent from the site:';
         $message .= "{$code}";
 
         return $message;

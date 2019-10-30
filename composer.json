@@ -1,6 +1,13 @@
 {
-  "name": "shafimsp/laravel-mobily-ws-sms-notification-channel-driver",
-  "description": "Laravel SMS Notification",
+  "name": "shafimsp/laravel-sms-notification-channel-mobilyws-driver",
+  "description": "MobilyWs Drive for Laravel SMS Notification Channel",
+  "keywords": [
+    "laravel",
+    "sms",
+    "notification",
+    "log",
+    "mobilyws"
+  ],
   "license": "MIT",
   "authors": [
     {
@@ -27,5 +34,6 @@
       ]
     }
   },
-  "minimum-stability": "dev"
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

@@ -2,7 +2,7 @@
 
 namespace Shafimsp\SmsNotificationChannel\MobilyWs;
 
-use Shafimsp\SmsNotificationChannel\MobilyWs\Exceptions\CouldNotSendMobilyWsNotification;
+use Shafimsp\SmsNotificationChannel\MobilyWs\Exceptions\MobilyWsSmsNotificationException;
 
 class MobilyWsConfig
 {
@@ -75,14 +75,14 @@ class MobilyWsConfig
                 return $this->authMethod = $config['authentication'];
             }
 
-            throw CouldNotSendMobilyWsNotification::withErrorMessage(
+            throw MobilyWsSmsNotificationException::withErrorMessage(
                 sprintf('Method %s is not supported. Please choose from: (key, password, auto)',
                     $config['authentication']
                 )
             );
         }
 
-        throw CouldNotSendMobilyWsNotification::withErrorMessage('Please set the authentication method in the mobilyws config file');
+        throw MobilyWsSmsNotificationException::withErrorMessage('Please set the authentication method in the mobilyws config file');
     }
 
     protected function getAutoCredentials()
@@ -102,7 +102,7 @@ class MobilyWsConfig
     protected function validateCredentials()
     {
         if (!isset($this->config['key']) && !isset($this->config['mobile'], $this->config['password'])) {
-            throw CouldNotSendMobilyWsNotification::withErrorMessage('No credentials were provided. Please set your (mobile/password) or key in the config file');
+            throw MobilyWsSmsNotificationException::withErrorMessage('No credentials were provided. Please set your (mobile/password) or key in the config file');
         }
     }
 }

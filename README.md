@@ -1,12 +1,12 @@
 # MobilyWs Driver For Laravel SMS Notification Channel
+------------
 
 ## Installation
-------------
 
 To install the PHP client library using Composer:
 
 ```bash
-composer require shafimsp/laravel-sms-notification-channel
+composer require shafimsp/laravel-sms-notification-channel-mobilyws-driver
 ```
 
 The package will automatically register itself.

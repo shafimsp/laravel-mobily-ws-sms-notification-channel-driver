@@ -2,10 +2,11 @@
 
 namespace Shafimsp\SmsNotificationChannel\MobilyWs\Exceptions;
 
-use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\Exception\RequestException;
+use Psr\Http\Message\ResponseInterface;
+use Shafimsp\SmsNotificationChannel\Exceptions\SmsException;
 
-class CouldNotSendMobilyWsNotification extends \Exception
+class MobilyWsSmsNotificationException extends SmsException
 {
     /**
      * Thrown when mobily.ws return a response body other than '1'.
@@ -21,7 +22,7 @@ class CouldNotSendMobilyWsNotification extends \Exception
             sprintf("Mobily.ws responded with error number %s and message:\n%s",
                 $code,
                 $message
-            ));
+            ), $code);
     }
 
     /**
@@ -47,13 +48,14 @@ class CouldNotSendMobilyWsNotification extends \Exception
      *
      * @return static
      */
-    public static function someErrorWhenSendingSms(Response $response)
+    public static function someErrorWhenSendingSms(ResponseInterface $response)
     {
         $code = $response->getStatusCode();
         $message = $response->getBody()->getContents();
 
         return new static(
-            sprintf('Could not send sms notification to mobily.ws. Status code %s and message: %s', $code, $message)
+            sprintf('Could not send sms notification to mobily.ws. Status code %s and message: %s', $code, $message),
+            $code
         );
     }
 

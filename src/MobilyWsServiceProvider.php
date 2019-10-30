@@ -7,7 +7,7 @@ use Illuminate\Notifications\ChannelManager;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\ServiceProvider;
 use Shafimsp\SmsNotificationChannel\Facades\Sms;
-use Shafimsp\SmsNotificationChannel\MobilyWs\Exceptions\CouldNotSendMobilyWsNotification;
+use Shafimsp\SmsNotificationChannel\MobilyWs\Exceptions\MobilyWsSmsNotificationException;
 use Shafimsp\SmsNotificationChannel\SmsManager;
 
 class MobilyWsServiceProvider extends ServiceProvider
@@ -24,7 +24,7 @@ class MobilyWsServiceProvider extends ServiceProvider
             $service->extend('mobilyws', function ($app) {
                 $mobilyWsConfig = $this->app['config']['services.mobilyws'];
                 if (is_null($mobilyWsConfig)) {
-                    throw CouldNotSendMobilyWsNotification::withErrorMessage('Config file was not found. Please publish the config file');
+                    throw MobilyWsSmsNotificationException::withErrorMessage('Config file was not found. Please publish the config file');
                 }
 
                 return new MobilyWsDriver(
