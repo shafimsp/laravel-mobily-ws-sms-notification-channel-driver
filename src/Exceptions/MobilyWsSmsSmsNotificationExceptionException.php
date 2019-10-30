@@ -4,9 +4,9 @@ namespace Shafimsp\SmsNotificationChannel\MobilyWs\Exceptions;
 
 use GuzzleHttp\Exception\RequestException;
 use Psr\Http\Message\ResponseInterface;
-use Shafimsp\SmsNotificationChannel\Exceptions\SmsException;
+use Shafimsp\SmsNotificationChannel\Exceptions\SmsNotificationException;
 
-class MobilyWsSmsNotificationException extends SmsException
+class MobilyWsSmsNotificationException extends SmsNotificationException
 {
     /**
      * Thrown when mobily.ws return a response body other than '1'.
